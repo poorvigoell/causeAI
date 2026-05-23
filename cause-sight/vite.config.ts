@@ -12,4 +12,19 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      proxy: {
+        "/api": {
+          target: process.env.VITE_CAUSEAI_BACKEND_ORIGIN || "http://localhost:3001",
+          changeOrigin: true,
+        },
+        "/ws": {
+          target: process.env.VITE_CAUSEAI_BACKEND_ORIGIN || "http://localhost:3001",
+          ws: true,
+          changeOrigin: true,
+        },
+      },
+    },
+  },
 });

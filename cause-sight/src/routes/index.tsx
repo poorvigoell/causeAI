@@ -43,9 +43,9 @@ function Landing() {
         <div className="absolute inset-0 noise mix-blend-overlay opacity-60" />
         <div className="absolute inset-0 scanlines opacity-40" />
         {/* warm orbs */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] teal-orb opacity-70" />
-        <div className="absolute top-[80vh] -left-40 w-[600px] h-[600px] teal-orb opacity-40" />
-        <div className="absolute top-[140vh] -right-40 w-[700px] h-[700px] teal-orb opacity-35" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-225 h-225 teal-orb opacity-70" />
+        <div className="absolute top-[80vh] -left-40 w-150 h-150 teal-orb opacity-40" />
+        <div className="absolute top-[140vh] -right-40 w-175 h-175 teal-orb opacity-35" />
         {/* edge vignette */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.5))]" />
       </div>
@@ -74,9 +74,9 @@ function Landing() {
       <section className="relative overflow-hidden">
         {/* Concentric glow rings behind hero */}
         <div className="pointer-events-none absolute left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2">
-          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] rounded-full ring-glow opacity-40" />
-          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full ring-glow opacity-50" />
-          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full ring-glow opacity-60" />
+          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-350 h-350 rounded-full ring-glow opacity-40" />
+          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-250 h-250 rounded-full ring-glow opacity-50" />
+          <div className="absolute -translate-x-1/2 -translate-y-1/2 w-175 h-175 rounded-full ring-glow opacity-60" />
         </div>
         <div className="relative max-w-5xl mx-auto px-6 pt-24 pb-12 flex flex-col items-center justify-center text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#565449] bg-[#1D1E17] text-[#D8CFBC] text-xs mb-8">
@@ -163,7 +163,7 @@ function Landing() {
       <section className="max-w-4xl mx-auto px-6 py-24">
         <div className="relative overflow-hidden p-12 md:p-16 rounded-lg bg-[#1D1E17] border border-[#565449] text-center shadow-[0_0_60px_rgba(86,84,73,0.3)]">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[600px] h-[600px] teal-orb" />
+            <div className="w-150 h-150 teal-orb" />
           </div>
           <div className="relative">
             <h2 className="text-3xl md:text-5xl font-bold text-gradient-jade mb-4">Stop guessing. Start knowing.</h2>
@@ -187,15 +187,15 @@ function Landing() {
 }
 
 function FeatureCard({
-  icon: Icon, title, desc, children, className = "",
+  icon: Icon, title, desc, children, className = "", iconWrapClass = "", iconClass = "",
 }: {
   icon: React.ElementType; title: string; desc: string;
-  children?: React.ReactNode; className?: string;
+  children?: React.ReactNode; className?: string; iconWrapClass?: string; iconClass?: string;
 }) {
   return (
     <div className={`card-top-line relative p-7 rounded-lg bg-[#1D1E17]/80 backdrop-blur-sm border border-[#565449]/40 hover-lift flex flex-col items-center text-center ${className}`}>
-      <div className="w-12 h-12 rounded-lg bg-[#565449]/40 border border-[#565449] flex items-center justify-center mb-5 glow-teal">
-        <Icon className="w-5 h-5 text-[#D8CFBC]" />
+      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-5 ${iconWrapClass || "bg-[#565449]/40 border border-[#565449] glow-teal"}`}>
+        <Icon className={`w-5 h-5 ${iconClass || "text-[#D8CFBC]"}`} />
       </div>
       <h3 className="font-semibold text-[#FFFBF4] mb-2 text-lg">{title}</h3>
       <p className="text-sm text-[#D8CFBC]/55 leading-relaxed max-w-xs">{desc}</p>
@@ -208,15 +208,45 @@ function FeatureGrid() {
   return (
     <div className="space-y-5">
       <div className="grid md:grid-cols-3 gap-5">
-        <FeatureCard icon={Code2} title="Expert Diagnosis" desc="Pinpoints root cause across logs, traces, and metrics in a single pass — with cited evidence for every claim." />
-        <FeatureCard icon={Layers} title="Fast & Easy Setup" desc="Drop in your log stream. No agents to deploy, no schema to design. The first analysis runs in minutes." />
-        <FeatureCard icon={Search} title="Advanced Analytics" desc="Spot recurring failure modes across weeks of incidents. Trends, blast radius, and SLO impact in one view." />
+        <FeatureCard
+          icon={Code2}
+          title="Expert Diagnosis"
+          desc="Pinpoints root cause across logs, traces, and metrics in a single pass — with cited evidence for every claim."
+          iconWrapClass="bg-[#ef4444]/20 border border-[#ef4444]/50 shadow-[0_0_28px_rgba(239,68,68,0.35)]"
+          iconClass="text-[#fca5a5]"
+        />
+        <FeatureCard
+          icon={Layers}
+          title="Fast & Easy Setup"
+          desc="Drop in your log stream. No agents to deploy, no schema to design. The first analysis runs in minutes."
+          iconWrapClass="bg-[#f59e0b]/20 border border-[#f59e0b]/50 shadow-[0_0_28px_rgba(245,158,11,0.35)]"
+          iconClass="text-[#fcd34d]"
+        />
+        <FeatureCard
+          icon={Search}
+          title="Advanced Analytics"
+          desc="Spot recurring failure modes across weeks of incidents. Trends, blast radius, and SLO impact in one view."
+          iconWrapClass="bg-[#10b981]/20 border border-[#10b981]/50 shadow-[0_0_28px_rgba(16,185,129,0.35)]"
+          iconClass="text-[#6ee7b7]"
+        />
       </div>
       <div className="grid md:grid-cols-2 gap-5">
-        <FeatureCard icon={Fingerprint} title="Seamless Integration" desc="Connects to your existing observability stack — no rip-and-replace, no new dashboards to babysit.">
+        <FeatureCard
+          icon={Fingerprint}
+          title="Seamless Integration"
+          desc="Connects to your existing observability stack — no rip-and-replace, no new dashboards to babysit."
+          iconWrapClass="bg-[#ef4444]/20 border border-[#ef4444]/50 shadow-[0_0_28px_rgba(239,68,68,0.35)]"
+          iconClass="text-[#fca5a5]"
+        >
           <IntegrationDiagram />
         </FeatureCard>
-        <FeatureCard icon={Palette} title="Customizable Reports" desc="Post-mortems that match your team's voice and template, generated and ready to paste.">
+        <FeatureCard
+          icon={Palette}
+          title="Customizable Reports"
+          desc="Post-mortems that match your team's voice and template, generated and ready to paste."
+          iconWrapClass="bg-[#10b981]/20 border border-[#10b981]/50 shadow-[0_0_28px_rgba(16,185,129,0.35)]"
+          iconClass="text-[#6ee7b7]"
+        >
           <div className="flex flex-wrap gap-2 justify-center">
             {["#root-cause", "#blast", "#fix", "#timeline", "#impact"].map((t) => (
               <span key={t} className="px-3 py-1.5 rounded-md bg-[#11120D] border border-[#565449]/60 font-mono text-xs text-[#D8CFBC]">
@@ -272,7 +302,7 @@ function AppPreview() {
         <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]/70" />
         <span className="ml-4 text-[11px] font-mono text-[#D8CFBC]/40">causeai · incidents / redis-oom-cascade</span>
       </div>
-      <div className="relative grid grid-cols-[180px_1fr] min-h-[360px]">
+      <div className="relative grid grid-cols-[180px_1fr] min-h-90">
         {/* sidebar */}
         <div className="border-r border-[#565449]/40 p-4 space-y-3">
           <div className="flex items-center gap-2 mb-3">
@@ -289,7 +319,7 @@ function AppPreview() {
               key={i.n}
               className={`relative px-2 py-2 rounded-md text-xs ${i.active ? "bg-[#11120D]" : ""}`}
             >
-              {i.active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-[#565449] rounded-r" />}
+              {i.active && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-[#565449] rounded-r" />}
               <p className="text-[#FFFBF4] font-medium">{i.n}</p>
               <p className="text-[9px] font-mono text-[#D8CFBC]/40 mt-0.5">{i.sev} · 2m</p>
             </div>
@@ -354,3 +384,4 @@ function AppPreview() {
     </div>
   );
 }
+

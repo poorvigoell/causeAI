@@ -9,12 +9,31 @@ import incidentsRouter from './routes/incidents.js'
 import postmortemRouter from './routes/postmortem.js'
 import chatRouter from './routes/chat.js'
 import webhookRouter from './routes/webhook.js'
-import { registerClient } from './websocket/streamHandler.js'
+import { handleConnection } from './websocket/streamHandler.js'
 
 const app = express()
 
+const defaultFrontendOrigins = [
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:8080',
+]
+
+const envOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.FRONTEND_URLS || '').split(','),
+]
+  .map((origin) => origin?.trim())
+  .filter(Boolean)
+
+const allowedOrigins = new Set([...defaultFrontendOrigins, ...envOrigins])
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true)
+    return callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -41,11 +60,7 @@ const server = http.createServer(app)
 const wss = new WebSocketServer({ server, path: '/ws' })
 
 wss.on('connection', (socket, request) => {
-  const params = new URL(request.url, 'http://localhost').searchParams
-  const clientId = params.get('clientId')
-  if (clientId) registerClient(clientId, socket)
-  socket.send(JSON.stringify({ type: 'connected' }))
-  socket.on('error', (err) => console.error('[WS] Socket error:', err.message))
+  handleConnection(socket, request, wss)
 })
 
 wss.on('error', (err) => console.error('[WS] Server error:', err.message))

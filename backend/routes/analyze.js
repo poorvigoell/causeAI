@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
   try {
     const result = await runAnalysisPipeline(logs, scenarioName, async (step) => {
       steps.push(step)
-      if (clientId) emitStep(clientId, { ...step, step: step.step - 1 })
+      if (clientId) emitStep(clientId, step)
     })
     if (clientId) emitDone(clientId)
     res.json({ success: true, result, steps })
