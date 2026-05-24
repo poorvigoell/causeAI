@@ -61,14 +61,15 @@ export type TrendPoint = {
   severity: string;
 };
 
-const API_BASE = import.meta.env.VITE_CAUSEAI_API_BASE_URL || "/api";
+const API_BASE = import.meta.env.VITE_CAUSEAI_API_BASE_URL || "https://causeai-backend.onrender.com/api";
 
 function getWsBaseUrl() {
   const configured = import.meta.env.VITE_CAUSEAI_WS_URL;
   if (configured) return configured;
-  if (typeof window === "undefined") return "ws://localhost:3001/ws";
+  if (typeof window === "undefined") return "wss://causeai-backend.onrender.com";
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${protocol}://${window.location.host}/ws`;
+  // Change this line:
+  return `wss://causeai-backend.onrender.com`;
 }
 
 function normalizeConfidence(value: unknown) {
