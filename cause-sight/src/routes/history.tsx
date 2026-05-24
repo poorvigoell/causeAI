@@ -187,6 +187,7 @@ function HistoryPage() {
   }, [])
 
   const filtered = incidents.filter(i => {
+    if (!(i as any).root_cause_service && !(i as any).root_cause) return false
     if (filter === 'all') return true
     const sev = (i as any).severity || 'P2'
     return sev === filter
@@ -274,10 +275,12 @@ function HistoryPage() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-[#FFFBF4] font-medium truncate">
-                        {inc.scenario_name || 'Unknown incident'}
+                        {(inc as any).root_cause_service
+                          ? `${(inc as any).root_cause_service}: ${((inc as any).root_cause || '').split('.')[0].slice(0, 60) || 'incident'}`
+                          : (inc.scenario_name && inc.scenario_name !== 'manual' ? inc.scenario_name : 'Unnamed incident')}
                       </p>
                       <p className="text-xs text-[#D8CFBC]/40 mt-0.5 font-mono">
-                        {timeAgo(inc.created_at)}
+                        #{String(inc.id).slice(0, 6).toUpperCase()} · {timeAgo(inc.created_at)}
                       </p>
                     </div>
 
