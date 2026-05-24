@@ -1,6 +1,7 @@
 import { supabase } from '../db/supabase.js'
 
 const rooms = new Map()
+const presenceMap = new Map() // teamId -> Map(name -> user info)
 
 function getRoom(incidentId) {
   if (!rooms.has(incidentId)) {
@@ -11,6 +12,69 @@ function getRoom(incidentId) {
     })
   }
   return rooms.get(incidentId)
+}
+
+function getTeamPresence(teamId) {
+  if (!presenceMap.has(teamId)) {
+    presenceMap.set(teamId, new Map())
+  }
+  return presenceMap.get(teamId)
+}
+
+export function handlePresence(ws, data) {
+  const { name, teamId, avatarColor, page, incidentId } = data
+  const team = getTeamPresence(teamId)
+
+  team.set(name, {
+    name,
+    avatarColor,
+    page,
+    incidentId: incidentId || null,
+    lastSeen: Date.now(),
+    ws
+  })
+
+  // Broadcast presence update to all teammates
+  const users = [...team.values()]
+    .filter(u => Date.now() - u.lastSeen < 30000)
+    .map(u => ({ name: u.name, avatarColor: u.avatarColor, page: u.page, incidentId: u.incidentId }))
+
+  team.forEach((u) => {
+    if (u.ws && u.ws.readyState === 1) {
+      u.ws.send(JSON.stringify({ type: 'PRESENCE_UPDATE', users }))
+    }
+  })
+
+  // Also send viewer counts for the history page
+  broadcastViewerCounts(teamId)
+
+  ws.on('close', () => {
+    team.delete(name)
+    const remaining = [...team.values()]
+      .filter(u => Date.now() - u.lastSeen < 30000)
+      .map(u => ({ name: u.name, avatarColor: u.avatarColor, page: u.page, incidentId: u.incidentId }))
+    team.forEach((u) => {
+      if (u.ws && u.ws.readyState === 1) {
+        u.ws.send(JSON.stringify({ type: 'PRESENCE_UPDATE', users: remaining }))
+      }
+    })
+    broadcastViewerCounts(teamId)
+  })
+}
+
+function broadcastViewerCounts(teamId) {
+  const team = getTeamPresence(teamId)
+  const counts = {}
+  team.forEach((u) => {
+    if (u.incidentId) {
+      counts[u.incidentId] = (counts[u.incidentId] || 0) + 1
+    }
+  })
+  team.forEach((u) => {
+    if (u.ws && u.ws.readyState === 1) {
+      u.ws.send(JSON.stringify({ type: 'VIEWER_COUNTS', counts }))
+    }
+  })
 }
 
 export function joinRoom(ws, incidentId, engineer, teamId) {

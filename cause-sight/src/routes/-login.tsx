@@ -5,6 +5,7 @@ export default function Login() {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [teamCode, setTeamCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -12,7 +13,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
+      await login(email, password, teamCode)
     } catch (err: any) {
       setError(err.message || 'Login failed')
     } finally {
@@ -54,6 +55,19 @@ export default function Login() {
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-[#565449] mb-1.5">Team Code</label>
+            <input
+              type="text"
+              value={teamCode}
+              onChange={e => setTeamCode(e.target.value.toUpperCase())}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+              placeholder="e.g. SRE-TEAM-01"
+              className="w-full rounded-md border border-[#565449]/40 bg-[#1D1E17] px-3 py-2 text-sm text-[#FFFBF4] placeholder-[#565449] outline-none focus:border-[#D8CFBC]/40 font-mono tracking-widest"
+            />
+            <p className="mt-1 text-xs text-[#565449]">All teammates must use the same code to collaborate</p>
+          </div>
+
           {error && (
             <p className="text-xs text-red-400 font-mono">{error}</p>
           )}
@@ -68,7 +82,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-[#565449]">
-          Any email + any password works for the demo.
+          Any email + password works. Team code groups you with colleagues.
         </p>
       </div>
     </div>

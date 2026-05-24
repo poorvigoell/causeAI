@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
+import { Navbar } from "../components/Navbar";
 import { useEffect, useMemo, useState } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
@@ -206,6 +207,8 @@ function AppPage() {
   const [loadingIncidents, setLoadingIncidents] = useState(true);
   const [incidentsError, setIncidentsError] = useState("");
   const [selectedId, setSelectedId] = useState<number | string | null>(null);
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlIncidentId = searchParams.get('incident');
   const [selectedAnalysis, setSelectedAnalysis] = useState<CauseAnalysis | null>(null);
 
   const [tab, setTab] = useState<'trend' | 'postmortem' | 'ask' | 'remediate'>("postmortem");
@@ -281,7 +284,7 @@ function AppPage() {
         setSelectedAnalysis(null);
         return;
       }
-      const targetId = preferredId ?? selectedId ?? data[0].id;
+      const targetId = preferredId ?? (urlIncidentId ? (isNaN(Number(urlIncidentId)) ? urlIncidentId : Number(urlIncidentId)) : null) ?? selectedId ?? data[0].id;
       const match = data.find((incident) => incident.id === targetId) || data[0];
       setSelectedId(match.id);
       setSelectedAnalysis(normalizeAnalysis(match.analysis_results?.[0]));
@@ -435,91 +438,9 @@ function AppPage() {
       </div>
 
       <div className="relative z-10 flex min-h-screen w-full">
-        <aside className="fixed inset-y-0 left-0 z-20 flex w-72 shrink-0 flex-col border-r border-[#565449]/30 bg-[#11120D]/70 backdrop-blur-md">
-          <div className="px-5 py-5">
-            <Link to="/" className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-[#D8CFBC]" fill="currentColor" />
-              <span className="font-bold text-[#FFFBF4]">CauseAI</span>
-            </Link>
-            <p className="mt-1 font-mono text-xs text-[#D8CFBC]/40">incident workspace</p>
-          </div>
-          <div className="mx-5 h-px bg-[#565449]/40" />
-          <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-color:#565449_transparent]">
-            <div className="mb-3">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[#565449]">Incident History</p>
-            </div>
+      <Navbar />
 
-            {loadingIncidents && (
-              <div className="rounded-md border border-[#565449]/40 bg-[#1D1E17] p-3 text-xs text-[#D8CFBC]/60">
-                Loading incidents...
-              </div>
-            )}
-
-            {!loadingIncidents && incidentsError && (
-              <div className="rounded-md border border-[#ef4444]/40 bg-[#ef4444]/10 p-3 text-xs text-[#ef4444]">
-                {incidentsError}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {!loadingIncidents &&
-                sidebarIncidents.map((incident) => {
-                  const analysis = normalizeAnalysis(incident.analysis_results?.[0]);
-                  const incidentSeverity = analysis?.severity || "P2";
-                  const active = incident.id === selectedId;
-                  const preview = analysis?.rootCause || incident.scenario_name || "No analysis yet";
-                  const subPreview =
-                    analysis?.businessImpact ||
-                    `Root service: ${analysis?.rootCauseService || "unknown-service"}`;
-                  return (
-                    <button
-                      key={incident.id}
-                      onClick={() => selectIncident(incident)}
-                      className={`relative w-full rounded-xl border px-3 py-3 text-left transition-colors ${active
-                          ? "border-[#565449]/60 bg-[#1D1E17]"
-                          : "border-[#565449]/30 bg-[#11120D] hover:border-[#565449]/50 hover:bg-[#1D1E17]/50"
-                        }`}
-                    >
-                      {active && (
-                        <span className="absolute bottom-3 left-0 top-3 w-0.75 rounded-r bg-[#7f7c6f]" />
-                      )}
-                      <div className="mb-2 text-[0.95rem] font-semibold leading-tight text-[#FFFBF4]">
-                        {preview}
-                      </div>
-                      <div className="mb-2 flex items-center gap-2">
-                        <span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${sevStyles[incidentSeverity] || sevStyles.P2}`}>
-                          {incidentSeverity}
-                        </span>
-                        <span className="font-mono text-[10px] text-[#D8CFBC]/40">{timeAgo(incident.created_at)}</span>
-                      </div>
-                      <p className="line-clamp-2 text-xs leading-relaxed text-[#D8CFBC]/45">
-                        {subPreview}
-                      </p>
-                    </button>
-                  );
-                })}
-            </div>
-            {!loadingIncidents && hasMoreHistory && (
-              <button
-                onClick={() => setShowHistoryPanel(true)}
-                className="mt-3 w-full rounded-md border border-[#565449]/50 bg-[#1D1E17] px-3 py-2 text-xs font-mono uppercase tracking-wider text-[#D8CFBC]/80 transition-colors hover:bg-[#565449]/20"
-              >
-                View More History ({incidents.length})
-              </button>
-            )}
-          </div>
-          <div className="mt-auto border-t border-[#565449]/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-[#D8CFBC]/40">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-                <span className="font-mono">agent.online</span>
-              </div>
-              <LogOutButton />
-            </div>
-          </div>
-        </aside>
-
-        <main className="ml-72 min-w-0 flex-1">
+        <main className="mt-14 min-w-0 flex-1">
           <div className="mx-auto w-full max-w-360 space-y-6 px-4 py-8 md:px-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -545,7 +466,7 @@ function AppPage() {
                     setAnalyzeError("");
                     setShowComposer(true);
                   }}
-                  className="rounded-md px-3 py-1.5 text-sm text-[#D8CFBC]/80 transition-colors hover:bg-[#1D1E17] hover:text-[#FFFBF4]"
+                  className="inline-flex items-center gap-2 rounded-md border border-[#565449]/60 bg-[#1D1E17] px-3 py-1.5 text-sm text-[#D8CFBC]/80 transition-all hover:bg-[#565449]/20 hover:text-[#FFFBF4]"
                 >
                   Analyze New Incident
                 </button>
@@ -645,7 +566,7 @@ function AppPage() {
                   </div>
                 </div>
 
-                <div className="grid items-start gap-6 lg:grid-cols-2">
+                <div className="flex flex-col gap-6">
                   <div className="h-fit rounded-lg border border-[#565449]/40 bg-[#1D1E17] p-6">
                     <p className="mb-4 text-[11px] font-mono uppercase tracking-widest text-[#565449]">Blast Radius</p>
                     <div className="mb-5 grid grid-cols-2 gap-4">
@@ -692,43 +613,7 @@ function AppPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-[#565449]/40 bg-[#1D1E17] p-6">
-                    <p className="mb-4 text-[11px] font-mono uppercase tracking-widest text-[#565449]">Cascade Chain</p>
-                    {cascadeBranches.length > 1 && (
-                      <div className="mb-4 space-y-1 rounded-md border border-[#565449]/40 bg-[#11120D] p-3">
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-[#565449]">Branches</p>
-                        {cascadeBranches.map((branch) => (
-                          <p key={branch} className="font-mono text-[11px] text-[#D8CFBC]/75">
-                            {branch}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                    <div className="space-y-3">
-                      {cascadeNodes.map((service, index, array) => (
-                        <div key={`${service.name || "service"}-${index}`}>
-                          <div
-                            className="flex items-center gap-3 rounded-md border border-[#565449]/40 border-l-2 bg-[#11120D] p-3"
-                            style={{ borderLeftColor: getCascadeTone(service.status || "").color }}
-                          >
-                            <ServiceIcon index={index} />
-                            <div className="min-w-0 flex-1">
-                              <p className="font-mono text-[1rem] text-[#FFFBF4]">{service.name || "unknown-service"}</p>
-                              <p className="font-mono text-[11px] text-[#D8CFBC]/40">
-                                {getCascadeTone(service.status || "").label}
-                                {service.errorCount ? ` - ${service.errorCount} errors` : " - 0 errors"}
-                              </p>
-                            </div>
-                          </div>
-                          {index < array.length - 1 && (
-                            <div className="flex justify-center py-1">
-                              <ChevronRight className="h-4 w-4 rotate-90 text-[#565449]" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <CascadeGraph nodes={cascadeNodes} />
                 </div>
 
                 <div className="rounded-lg border border-[#565449]/40 bg-[#1D1E17] p-6">
@@ -1334,6 +1219,104 @@ function RemediatePanel({ incidentId }: { incidentId: string }) {
       {status === 'idle' && events.length === 0 && (
         <p className="text-sm text-[#D8CFBC]/40 text-center py-8">Start the agent to generate and execute a remediation plan.</p>
       )}
+    </div>
+  )
+}
+
+
+function CascadeGraph({ nodes }: { nodes: { name?: string; status?: string; errorCount?: number }[] }) {
+  if (!nodes.length) return null
+
+  // Layout: stagger nodes in a zigzag across full width
+  const positions = nodes.map((_, i) => {
+    const cols = Math.min(nodes.length, 4)
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const xBase = (col / (cols - 1 || 1)) * 80 + 10
+    const xJitter = (i % 2 === 0 ? 0 : 8) + (i % 3 === 0 ? -5 : 0)
+    const x = Math.max(8, Math.min(88, xBase + xJitter))
+    const y = row * 140 + 40
+    return { x, y }
+  })
+
+  const totalHeight = (Math.ceil(nodes.length / 4)) * 140 + 60
+
+  return (
+    <div className="rounded-lg border border-[#565449]/40 bg-[#1D1E17] p-6">
+      <p className="mb-4 text-[11px] font-mono uppercase tracking-widest text-[#565449]">Cascade Chain — {nodes.length} services affected</p>
+      <div className="relative w-full overflow-x-auto" style={{ height: totalHeight }}>
+        <svg className="absolute inset-0 pointer-events-none" width="100%" height={totalHeight} viewBox={`0 0 1000 ${totalHeight}`} preserveAspectRatio="none">
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="rgba(255,251,244,0.7)" />
+            </marker>
+          </defs>
+          {nodes.map((_, i) => {
+            if (i === nodes.length - 1) return null
+            const from = positions[i]
+            const to = positions[i + 1]
+            // Convert % to viewBox units (use 1000 wide viewBox)
+            const W = 1000
+            const fromX = (from.x / 100) * W
+            const fromY = from.y + 38
+            const toX = (to.x / 100) * W
+            const toY = to.y + 2
+            // from bottom-center of source node, to top-center of target node
+            const nodeH = 52
+            const fx = fromX
+            const fy = from.y + nodeH
+            const tx = toX
+            const ty = to.y
+            const midy = (fy + ty) / 2
+            return (
+              <path
+                key={i}
+                d={`M ${fx} ${fy} C ${fx} ${midy}, ${tx} ${midy}, ${tx} ${ty}`}
+                stroke="rgba(255,251,244,0.55)"
+                strokeWidth="1.5"
+                strokeDasharray="6 4"
+                fill="none"
+                markerEnd="url(#arrow)"
+              />
+            )
+          })}
+        </svg>
+        {nodes.map((service, i) => {
+          const tone = (() => {
+            const s = (service.status || '').toLowerCase()
+            if (s.includes('fail') || s.includes('crash') || s.includes('down') || s.includes('critical')) return { color: '#ef4444', label: 'Failed' }
+            if (s.includes('degrad') || s.includes('warn') || s.includes('slow')) return { color: '#f59e0b', label: 'Degraded' }
+            if (s.includes('healthy') || s.includes('ok') || s.includes('up')) return { color: '#10b981', label: 'Healthy' }
+            return { color: '#565449', label: service.status || 'Affected' }
+          })()
+          const pos = positions[i]
+          return (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                left: `calc(${pos.x}% - 72px)`,
+                top: pos.y,
+                width: 144,
+              }}
+            >
+              <div
+                className="rounded-lg border bg-[#11120D] px-3 py-2.5 shadow-lg transition-transform hover:scale-105 cursor-default"
+                style={{ borderColor: `${tone.color}55`, borderLeftColor: tone.color, borderLeftWidth: 3 }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tone.color }} />
+                  <p className="font-mono text-xs text-[#FFFBF4] font-medium truncate">{service.name || 'unknown'}</p>
+                </div>
+                <p className="font-mono text-[10px] pl-3.5" style={{ color: tone.color }}>
+                  {tone.label}{service.errorCount ? ` · ${service.errorCount} err` : ''}
+                </p>
+              </div>
+              <div className="mt-1 text-center font-mono text-[9px] text-[#565449]">#{i + 1}</div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
