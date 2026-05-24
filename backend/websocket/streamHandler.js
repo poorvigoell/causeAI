@@ -2,6 +2,16 @@ import { runAnalysisPipeline } from '../agent/pipeline.js'
 
 const clients = new Map()
 
+// Map of teamId -> Map of clientId -> { name, avatarColor, page, lastSeen, ws }
+const presenceMap = new Map()
+
+function getTeamPresence(teamId) {
+  if (!presenceMap.has(teamId)) {
+    presenceMap.set(teamId, new Map())
+  }
+  return presenceMap.get(teamId)
+}
+
 function safeSend(socket, payload) {
   if (socket?.readyState === 1) {
     socket.send(JSON.stringify(payload))
@@ -10,8 +20,35 @@ function safeSend(socket, payload) {
 
 export function registerClient(clientId, ws) {
   clients.set(clientId, ws)
-  ws.on('close', () => clients.delete(clientId))
+  ws.on('close', () => {
+    clients.delete(clientId)
+    
+    // Cleanup presence on disconnect
+    for (const [teamId, team] of presenceMap.entries()) {
+      if (team.has(clientId)) {
+        team.delete(clientId)
+        broadcastPresence(team)
+      }
+    }
+  })
   ws.on('error', () => clients.delete(clientId))
+}
+
+function broadcastPresence(team) {
+  const users = new Map()
+  for (const u of team.values()) {
+    if (Date.now() - u.lastSeen < 30000) {
+      if (!users.has(u.name)) {
+        users.set(u.name, { name: u.name, avatarColor: u.avatarColor, page: u.page })
+      }
+    }
+  }
+  const activeUsers = [...users.values()]
+  team.forEach((u) => {
+    if (u.ws && u.ws.readyState === 1) {
+      u.ws.send(JSON.stringify({ type: 'PRESENCE_UPDATE', users: activeUsers }))
+    }
+  })
 }
 
 export function emitStep(clientId, payload) {
@@ -83,6 +120,32 @@ export function handleConnection(socket, request, _wss) {
         })
 
         safeSend(socket, { type: 'ANALYSIS_COMPLETE', result })
+        return
+      }
+
+      if (messageType === 'PRESENCE') {
+        const { name, teamId, avatarColor, page } = payload
+        const team = getTeamPresence(teamId)
+        
+        // We use socket as the unique key to handle multiple tabs
+        team.set(socket, {
+          name,
+          avatarColor,
+          page,
+          lastSeen: Date.now(),
+          ws: socket
+        })
+        
+        broadcastPresence(team)
+        
+        // Ensure cleanup when socket closes (if not already handled)
+        if (!socket.hasPresenceListener) {
+          socket.hasPresenceListener = true
+          socket.on('close', () => {
+            team.delete(socket)
+            broadcastPresence(team)
+          })
+        }
         return
       }
     } catch (err) {
