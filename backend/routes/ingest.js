@@ -1,6 +1,7 @@
 import express from 'express'
 import { normalizeDatadog } from '../adapters/datadog.js'
 import { normalizeGrafana } from '../adapters/grafana.js'
+import { normalizeNewRelic } from '../adapters/newrelic.js'
 import { supabase } from '../db/supabase.js'
 
 const router = express.Router()
@@ -25,6 +26,18 @@ router.post('/grafana', async (req, res) => {
     res.status(200).json({ received: true, incidentId: incident.id })
   } catch (err) {
     console.error('Grafana ingest error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/newrelic', async (req, res) => {
+  console.log('📥 New Relic webhook received:', JSON.stringify(req.body, null, 2))
+  try {
+    const normalized = normalizeNewRelic(req.body)
+    const incident = await triggerAnalysis(normalized)
+    res.status(200).json({ received: true, incidentId: incident.id })
+  } catch (err) {
+    console.error('New Relic ingest error:', err)
     res.status(500).json({ error: err.message })
   }
 })
