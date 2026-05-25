@@ -71,6 +71,8 @@ router.get('/ping', (req, res) => {
   res.json({ status: 'ingest route live' })
 })
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001'
+
 async function triggerAnalysis(normalized) {
   const { data: incident, error } = await supabase
     .from('incidents')
@@ -90,9 +92,8 @@ async function triggerAnalysis(normalized) {
 
   console.log(`✅ Incident created: ${incident.id}`)
 
-  // Kick off AI analysis
   try {
-    await fetch('http://localhost:3001/api/analyze', {
+    await fetch(`${BACKEND_URL}/api/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -104,10 +105,9 @@ async function triggerAnalysis(normalized) {
     console.error('Analysis pipeline call failed:', err.message)
   }
 
-  // JOIN POINT — kick off remediation agent for P0 alerts
   if (normalized.severity === 'P0') {
     try {
-      await fetch(`http://localhost:3001/api/remediate/${incident.id}/start`, {
+      await fetch(`${BACKEND_URL}/api/remediate/${incident.id}/start`, {
         method: 'POST'
       })
       console.log(`🤖 Remediation agent started for incident ${incident.id}`)
