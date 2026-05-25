@@ -86,7 +86,7 @@ export type TrendPoint = {
   severity: string;
 };
 
-const API_BASE = import.meta.env.VITE_CAUSEAI_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:3001/api" : "https://causeai-backend.onrender.com/api");
+export const API_BASE = import.meta.env.VITE_CAUSEAI_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:3001/api" : "https://causeai-backend.onrender.com/api");
 
 function getWsBaseUrl() {
   const configured = import.meta.env.VITE_CAUSEAI_WS_URL;

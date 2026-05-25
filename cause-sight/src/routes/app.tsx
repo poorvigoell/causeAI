@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 
 import {
+  API_BASE,
   analyzeIncident,
   fetchServiceTrend,
   generatePostmortem,
@@ -1454,7 +1455,7 @@ function RemediatePanel({ incidentId }: { incidentId: string }) {
     setEvents([])
     setPlan(null)
     setStatus('running')
-    const res = await fetch(`http://localhost:3001/api/remediate/${incidentId}/start`, { method: 'POST' })
+    const res = await fetch(`${API_BASE}/remediate/${incidentId}/start`, { method: 'POST' })
     const reader = res.body?.getReader()
     const decoder = new TextDecoder()
     if (!reader) return
@@ -1477,11 +1478,11 @@ function RemediatePanel({ incidentId }: { incidentId: string }) {
   }
 
   const approve = async () => {
-    await fetch(`http://localhost:3001/api/remediate/${incidentId}/approve`, { method: 'POST' })
+    await fetch(`${API_BASE}/remediate/${incidentId}/approve`, { method: 'POST' })
   }
 
   const reject = async () => {
-    await fetch(`http://localhost:3001/api/remediate/${incidentId}/reject`, { method: 'POST' })
+    await fetch(`${API_BASE}/remediate/${incidentId}/reject`, { method: 'POST' })
   }
 
   return (
